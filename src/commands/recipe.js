@@ -15,7 +15,8 @@ const {
     formatInstructionsEmbeds,
     formatRecipeListEmbed,
     createRecipeButtons,
-    createBackButton
+    createBackButton,
+    createPaginationButtons
 } = require('../utils/formatters');
 
 const data = new SlashCommandBuilder()
@@ -199,15 +200,17 @@ async function execute(interaction) {
 
         case 'list': {
             const recipes = getGuildRecipes(interaction.guildId);
-            const embed = formatRecipeListEmbed(recipes, 'Your Recipes');
-            return interaction.reply({ embeds: [embed] });
+            const { embed, totalPages, page } = formatRecipeListEmbed(recipes, 'Your Recipes', 0);
+            const components = totalPages > 1 ? [createPaginationButtons(page, totalPages, 'recipelist')] : [];
+            return interaction.reply({ embeds: [embed], components });
         }
 
         case 'search': {
             const query = interaction.options.getString('query');
             const recipes = searchRecipes(interaction.guildId, query);
-            const embed = formatRecipeListEmbed(recipes, `Search: "${query}"`);
-            return interaction.reply({ embeds: [embed] });
+            const { embed, totalPages, page } = formatRecipeListEmbed(recipes, `Search: "${query}"`, 0);
+            const components = totalPages > 1 ? [createPaginationButtons(page, totalPages, 'searchlist')] : [];
+            return interaction.reply({ embeds: [embed], components });
         }
 
         case 'delete': {

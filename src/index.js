@@ -78,7 +78,7 @@ client.on(Events.InteractionCreate, async interaction => {
 
 // Listen for messages containing recipe URLs
 const { detectRecipeUrl, parseRecipe } = require('./services/recipeParser');
-const { saveRecipe, getRecipe, markAsCooked } = require('./services/recipeStorage');
+const { saveRecipe, getRecipe, markAsCooked, getGuildRecipes } = require('./services/recipeStorage');
 const { createShoppingList } = require('./services/shoppingList');
 const { isAllowedChannel } = require('./services/guildConfig');
 const {
@@ -86,8 +86,10 @@ const {
     formatIngredientsEmbed,
     formatInstructionsEmbeds,
     formatShoppingListEmbed,
+    formatRecipeListEmbed,
     createRecipeButtons,
-    createBackButton
+    createBackButton,
+    createPaginationButtons
 } = require('./utils/formatters');
 
 client.on(Events.MessageCreate, async message => {
@@ -139,7 +141,26 @@ client.on(Events.MessageCreate, async message => {
     }
 });
 
-// Handle button interactions
+// Handle pagination button interactions
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isButton()) return;
+
+    const [listType, action, pageStr] = interaction.customId.split('_');
+    if (listType !== 'recipelist') return;
+
+    const page = parseInt(pageStr, 10);
+    const recipes = getGuildRecipes(interaction.guildId);
+    const { embed, totalPages } = formatRecipeListEmbed(recipes, 'Your Recipes', page);
+    const components = totalPages > 1 ? [createPaginationButtons(page, totalPages, 'recipelist')] : [];
+
+    try {
+        await interaction.update({ embeds: [embed], components });
+    } catch (error) {
+        console.error('Pagination error:', error);
+    }
+});
+
+// Handle recipe button interactions
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isButton()) return;
 

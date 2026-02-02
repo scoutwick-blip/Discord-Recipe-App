@@ -230,9 +230,15 @@ function formatShoppingListEmbed(shoppingList) {
 }
 
 /**
- * Format recipe list as an embed
+ * Format recipe list as an embed with pagination
  */
-function formatRecipeListEmbed(recipes, title = 'Recipes') {
+function formatRecipeListEmbed(recipes, title = 'Recipes', page = 0) {
+    const ITEMS_PER_PAGE = 10;
+    const totalPages = Math.ceil(recipes.length / ITEMS_PER_PAGE);
+    const startIndex = page * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const pageRecipes = recipes.slice(startIndex, endIndex);
+
     const embed = new EmbedBuilder()
         .setColor(0xE67E22)
         .setTitle(`📚 ${title}`)
@@ -240,15 +246,15 @@ function formatRecipeListEmbed(recipes, title = 'Recipes') {
 
     if (recipes.length === 0) {
         embed.setDescription('No recipes found. Post a recipe link to get started!');
-        return embed;
+        return { embed, totalPages, page };
     }
 
-    const recipeList = recipes
-        .slice(0, 15)
+    const recipeList = pageRecipes
         .map((recipe, i) => {
+            const num = startIndex + i + 1;
             const rating = recipe.rating ? ' ⭐'.repeat(recipe.rating) : '';
             const tags = recipe.tags?.length > 0 ? ` [${recipe.tags.join(', ')}]` : '';
-            return `**${i + 1}.** ${truncate(recipe.name, 40)}${rating}${tags}\n   \`ID: ${recipe.id}\``;
+            return `**${num}.** ${truncate(recipe.name, 40)}${rating}${tags}\n   \`ID: ${recipe.id}\``;
         })
         .join('\n\n');
 
@@ -258,11 +264,41 @@ function formatRecipeListEmbed(recipes, title = 'Recipes') {
         inline: false
     });
 
-    if (recipes.length > 15) {
-        embed.setFooter({ text: `Showing 15 of ${recipes.length} recipes` });
+    if (totalPages > 1) {
+        embed.setFooter({ text: `Page ${page + 1} of ${totalPages} • ${recipes.length} total recipes` });
     }
 
-    return embed;
+    return { embed, totalPages, page };
+}
+
+/**
+ * Create pagination buttons for recipe list
+ */
+function createPaginationButtons(page, totalPages, prefix = 'recipelist') {
+    const row = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`${prefix}_first_0`)
+                .setLabel('⏮ First')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page === 0),
+            new ButtonBuilder()
+                .setCustomId(`${prefix}_prev_${page - 1}`)
+                .setLabel('◀ Prev')
+                .setStyle(ButtonStyle.Primary)
+                .setDisabled(page === 0),
+            new ButtonBuilder()
+                .setCustomId(`${prefix}_next_${page + 1}`)
+                .setLabel('Next ▶')
+                .setStyle(ButtonStyle.Primary)
+                .setDisabled(page >= totalPages - 1),
+            new ButtonBuilder()
+                .setCustomId(`${prefix}_last_${totalPages - 1}`)
+                .setLabel('Last ⏭')
+                .setStyle(ButtonStyle.Secondary)
+                .setDisabled(page >= totalPages - 1)
+        );
+    return row;
 }
 
 /**
@@ -402,5 +438,6 @@ module.exports = {
     formatRecipeListEmbed,
     formatStatsEmbed,
     createRecipeButtons,
-    createBackButton
+    createBackButton,
+    createPaginationButtons
 };
