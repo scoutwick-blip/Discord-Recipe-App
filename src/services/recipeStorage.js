@@ -72,16 +72,23 @@ function getGuildRecipes(guildId) {
         .sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
 }
 
+function matchesQuery(value, query) {
+    if (!value) return false;
+    if (typeof value === 'string') return value.toLowerCase().includes(query);
+    if (Array.isArray(value)) return value.some(v => typeof v === 'string' && v.toLowerCase().includes(query));
+    return false;
+}
+
 function searchRecipes(guildId, query) {
     const recipes = getGuildRecipes(guildId);
     const queryLower = query.toLowerCase();
 
     return recipes.filter(recipe => {
-        if (recipe.name.toLowerCase().includes(queryLower)) return true;
-        if (recipe.ingredients.some(ing => ing.toLowerCase().includes(queryLower))) return true;
-        if (recipe.tags.some(tag => tag.toLowerCase().includes(queryLower))) return true;
-        if (recipe.category?.toLowerCase().includes(queryLower)) return true;
-        if (recipe.cuisine?.toLowerCase().includes(queryLower)) return true;
+        if (matchesQuery(recipe.name, queryLower)) return true;
+        if (recipe.ingredients?.some(ing => matchesQuery(ing, queryLower))) return true;
+        if (recipe.tags?.some(tag => matchesQuery(tag, queryLower))) return true;
+        if (matchesQuery(recipe.category, queryLower)) return true;
+        if (matchesQuery(recipe.cuisine, queryLower)) return true;
         return false;
     });
 }
