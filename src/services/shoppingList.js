@@ -73,7 +73,27 @@ function combineIngredients(ingredients) {
     return Array.from(combined.values());
 }
 
+function findExistingList(recipeIds, guildId) {
+    const data = loadLists();
+    const guildLists = data.guilds[guildId] || [];
+    const sortedRecipeIds = [...recipeIds].sort().join(',');
+
+    for (const listId of guildLists) {
+        const list = data.lists[listId];
+        if (list && [...list.recipes].sort().join(',') === sortedRecipeIds) {
+            return list;
+        }
+    }
+    return null;
+}
+
 function createShoppingList(recipeIds, guildId, userId) {
+    // Check if a list already exists for these recipes
+    const existing = findExistingList(recipeIds, guildId);
+    if (existing) {
+        return existing;
+    }
+
     const data = loadLists();
     const allIngredients = [];
     const recipeNames = [];
