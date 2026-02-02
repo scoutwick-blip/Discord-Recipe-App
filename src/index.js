@@ -1,4 +1,5 @@
-import { Client, Collection, Events, GatewayIntentBits } from 'discord.js';
+import pkg from 'discord.js';
+const { Client, Collection, Events, GatewayIntentBits } = pkg;
 import { config } from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
