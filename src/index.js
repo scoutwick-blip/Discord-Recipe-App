@@ -1,7 +1,7 @@
 import pkg from 'discord.js';
 const { Client, Collection, Events, GatewayIntentBits } = pkg;
 import { config } from 'dotenv';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
 import { readdirSync } from 'fs';
 
@@ -30,7 +30,7 @@ async function loadCommands() {
 
     for (const file of commandFiles) {
         const filePath = join(commandsPath, file);
-        const command = await import(filePath);
+        const command = await import(pathToFileURL(filePath).href);
 
         if ('data' in command && 'execute' in command) {
             client.commands.set(command.data.name, command);
