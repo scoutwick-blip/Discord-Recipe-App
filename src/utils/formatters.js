@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 /**
  * Format a recipe as a Discord embed
@@ -347,11 +347,58 @@ function splitIntoChunks(text, maxSize) {
     return chunks;
 }
 
+/**
+ * Create action buttons for a recipe
+ */
+function createRecipeButtons(recipeId) {
+    const row = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`recipe_ingredients_${recipeId}`)
+                .setLabel('Ingredients')
+                .setEmoji('📝')
+                .setStyle(ButtonStyle.Primary),
+            new ButtonBuilder()
+                .setCustomId(`recipe_instructions_${recipeId}`)
+                .setLabel('Instructions')
+                .setEmoji('👨‍🍳')
+                .setStyle(ButtonStyle.Primary),
+            new ButtonBuilder()
+                .setCustomId(`recipe_shop_${recipeId}`)
+                .setLabel('Shopping List')
+                .setEmoji('🛒')
+                .setStyle(ButtonStyle.Success),
+            new ButtonBuilder()
+                .setCustomId(`recipe_cooked_${recipeId}`)
+                .setLabel('Cooked It!')
+                .setEmoji('✅')
+                .setStyle(ButtonStyle.Secondary)
+        );
+    return row;
+}
+
+/**
+ * Create back button to return to recipe view
+ */
+function createBackButton(recipeId) {
+    const row = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`recipe_view_${recipeId}`)
+                .setLabel('Back to Recipe')
+                .setEmoji('◀️')
+                .setStyle(ButtonStyle.Secondary)
+        );
+    return row;
+}
+
 module.exports = {
     formatRecipeEmbed,
     formatIngredientsEmbed,
     formatInstructionsEmbeds,
     formatShoppingListEmbed,
     formatRecipeListEmbed,
-    formatStatsEmbed
+    formatStatsEmbed,
+    createRecipeButtons,
+    createBackButton
 };

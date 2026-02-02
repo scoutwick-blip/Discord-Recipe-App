@@ -13,7 +13,9 @@ const {
     formatRecipeEmbed,
     formatIngredientsEmbed,
     formatInstructionsEmbeds,
-    formatRecipeListEmbed
+    formatRecipeListEmbed,
+    createRecipeButtons,
+    createBackButton
 } = require('../utils/formatters');
 
 const data = new SlashCommandBuilder()
@@ -165,7 +167,8 @@ async function execute(interaction) {
             }
 
             const embed = formatRecipeEmbed(recipe);
-            return interaction.reply({ embeds: [embed] });
+            const buttons = createRecipeButtons(id);
+            return interaction.reply({ embeds: [embed], components: [buttons] });
         }
 
         case 'ingredients': {
@@ -177,7 +180,8 @@ async function execute(interaction) {
             }
 
             const embed = formatIngredientsEmbed(recipe);
-            return interaction.reply({ embeds: [embed] });
+            const backBtn = createBackButton(id);
+            return interaction.reply({ embeds: [embed], components: [backBtn] });
         }
 
         case 'instructions': {
@@ -189,7 +193,8 @@ async function execute(interaction) {
             }
 
             const embeds = formatInstructionsEmbeds(recipe);
-            return interaction.reply({ embeds: embeds.slice(0, 10) });
+            const backBtn = createBackButton(id);
+            return interaction.reply({ embeds: embeds.slice(0, 10), components: [backBtn] });
         }
 
         case 'list': {

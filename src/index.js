@@ -78,8 +78,16 @@ client.on(Events.InteractionCreate, async interaction => {
 
 // Listen for messages containing recipe URLs
 const { detectRecipeUrl, parseRecipe } = require('./services/recipeParser');
-const { saveRecipe } = require('./services/recipeStorage');
-const { formatRecipeEmbed } = require('./utils/formatters');
+const { saveRecipe, getRecipe, markAsCooked } = require('./services/recipeStorage');
+const { createShoppingList } = require('./services/shoppingList');
+const {
+    formatRecipeEmbed,
+    formatIngredientsEmbed,
+    formatInstructionsEmbeds,
+    formatShoppingListEmbed,
+    createRecipeButtons,
+    createBackButton
+} = require('./utils/formatters');
 
 client.on(Events.MessageCreate, async message => {
     // Ignore bot messages
@@ -100,11 +108,13 @@ client.on(Events.MessageCreate, async message => {
                 // Save the recipe
                 const savedRecipe = await saveRecipe(recipe, message.guild.id, message.author.id);
 
-                // Send formatted recipe
+                // Send formatted recipe with buttons
                 const embed = formatRecipeEmbed(savedRecipe);
+                const buttons = createRecipeButtons(savedRecipe.id);
                 await message.reply({
-                    content: `Recipe saved! Use \`/recipe view ${savedRecipe.id}\` to view it anytime.`,
-                    embeds: [embed]
+                    content: `✅ Recipe saved!`,
+                    embeds: [embed],
+                    components: [buttons]
                 });
 
                 // Update reaction (ignore permission errors)
@@ -121,6 +131,67 @@ client.on(Events.MessageCreate, async message => {
             } catch (e) { /* ignore */ }
             await message.reply('Sorry, I couldn\'t parse that recipe. The website might not be supported or the link may be invalid.');
         }
+    }
+});
+
+// Handle button interactions
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isButton()) return;
+
+    const [action, type, recipeId] = interaction.customId.split('_');
+    if (action !== 'recipe') return;
+
+    const recipe = getRecipe(recipeId);
+    if (!recipe) {
+        return interaction.reply({ content: 'Recipe not found.', ephemeral: true });
+    }
+
+    try {
+        switch (type) {
+            case 'ingredients': {
+                const embed = formatIngredientsEmbed(recipe);
+                const backBtn = createBackButton(recipeId);
+                await interaction.update({ embeds: [embed], components: [backBtn] });
+                break;
+            }
+
+            case 'instructions': {
+                const embeds = formatInstructionsEmbeds(recipe);
+                const backBtn = createBackButton(recipeId);
+                await interaction.update({ embeds: embeds.slice(0, 1), components: [backBtn] });
+                break;
+            }
+
+            case 'shop': {
+                const shoppingList = createShoppingList([recipeId], interaction.guildId, interaction.user.id);
+                const embed = formatShoppingListEmbed(shoppingList);
+                await interaction.reply({
+                    content: `🛒 Shopping list created for **${recipe.name}**!`,
+                    embeds: [embed],
+                    ephemeral: true
+                });
+                break;
+            }
+
+            case 'cooked': {
+                const updated = markAsCooked(recipeId);
+                await interaction.reply({
+                    content: `👨‍🍳 Nice! You've cooked **${recipe.name}** ${updated.timesCooked} time(s)!`,
+                    ephemeral: true
+                });
+                break;
+            }
+
+            case 'view': {
+                const embed = formatRecipeEmbed(recipe);
+                const buttons = createRecipeButtons(recipeId);
+                await interaction.update({ embeds: [embed], components: [buttons] });
+                break;
+            }
+        }
+    } catch (error) {
+        console.error('Button interaction error:', error);
+        await interaction.reply({ content: 'Something went wrong!', ephemeral: true }).catch(() => {});
     }
 });
 
