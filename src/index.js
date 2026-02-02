@@ -91,7 +91,7 @@ client.on(Events.MessageCreate, async message => {
     if (recipeUrl) {
         try {
             // React to show we're processing
-            await message.react('🍳');
+            try { await message.react('🍳'); } catch (e) { /* ignore */ }
 
             // Parse the recipe
             const recipe = await parseRecipe(recipeUrl);
@@ -107,14 +107,18 @@ client.on(Events.MessageCreate, async message => {
                     embeds: [embed]
                 });
 
-                // Update reaction
-                await message.reactions.removeAll();
-                await message.react('✅');
+                // Update reaction (ignore permission errors)
+                try {
+                    await message.reactions.removeAll();
+                    await message.react('✅');
+                } catch (e) { /* ignore permission errors */ }
             }
         } catch (error) {
             console.error('Error processing recipe URL:', error);
-            await message.reactions.removeAll();
-            await message.react('❌');
+            try {
+                await message.reactions.removeAll();
+                await message.react('❌');
+            } catch (e) { /* ignore */ }
             await message.reply('Sorry, I couldn\'t parse that recipe. The website might not be supported or the link may be invalid.');
         }
     }
