@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
 const {
     createShoppingList,
     getShoppingList,
@@ -10,6 +10,7 @@ const {
     deleteShoppingList,
     exportAsText
 } = require('../services/shoppingList');
+const { getGuildRecipes } = require('../services/recipeStorage');
 const { formatShoppingListEmbed } = require('../utils/formatters');
 
 const data = new SlashCommandBuilder()
@@ -134,6 +135,11 @@ const data = new SlashCommandBuilder()
                     .setRequired(true)
                     .setAutocomplete(true)
             )
+    )
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName('quick')
+            .setDescription('Quick create - select recipes from a menu (mobile-friendly)')
     );
 
 async function execute(interaction) {
@@ -312,6 +318,41 @@ async function execute(interaction) {
 
             return interaction.reply({
                 content: '```\n' + text + '\n```'
+            });
+        }
+
+        case 'quick': {
+            const recipes = getGuildRecipes(interaction.guildId);
+
+            if (recipes.length === 0) {
+                return interaction.reply({
+                    content: 'No recipes saved yet. Post a recipe link to get started!',
+                    ephemeral: true
+                });
+            }
+
+            // Show up to 25 most recent recipes in a select menu
+            const recentRecipes = recipes.slice(0, 25);
+
+            const selectMenu = new StringSelectMenuBuilder()
+                .setCustomId('shopping_quick_select')
+                .setPlaceholder('Tap to select recipes...')
+                .setMinValues(1)
+                .setMaxValues(Math.min(recentRecipes.length, 10))
+                .addOptions(
+                    recentRecipes.map(recipe => ({
+                        label: recipe.name.substring(0, 100),
+                        value: recipe.id,
+                        description: recipe.cuisine ? `${recipe.cuisine}`.substring(0, 100) : undefined
+                    }))
+                );
+
+            const row = new ActionRowBuilder().addComponents(selectMenu);
+
+            return interaction.reply({
+                content: '🛒 **Quick Shopping List**\nSelect one or more recipes from the menu below:',
+                components: [row],
+                ephemeral: true
             });
         }
 

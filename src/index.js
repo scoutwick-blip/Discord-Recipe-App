@@ -160,6 +160,36 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 });
 
+// Handle shopping quick select menu
+client.on(Events.InteractionCreate, async interaction => {
+    if (!interaction.isStringSelectMenu()) return;
+    if (interaction.customId !== 'shopping_quick_select') return;
+
+    const selectedRecipeIds = interaction.values;
+
+    try {
+        const shoppingList = createShoppingList(
+            selectedRecipeIds,
+            interaction.guildId,
+            interaction.user.id
+        );
+
+        const embed = formatShoppingListEmbed(shoppingList);
+
+        await interaction.update({
+            content: `✅ Shopping list created with ${selectedRecipeIds.length} recipe(s)!`,
+            embeds: [embed],
+            components: []
+        });
+    } catch (error) {
+        console.error('Quick shopping list error:', error);
+        await interaction.update({
+            content: 'Failed to create shopping list. Please try again.',
+            components: []
+        });
+    }
+});
+
 // Handle recipe button interactions
 client.on(Events.InteractionCreate, async interaction => {
     if (!interaction.isButton()) return;
