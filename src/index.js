@@ -93,8 +93,15 @@ client.on(Events.MessageCreate, async message => {
     // Ignore bot messages
     if (message.author.bot) return;
 
+    // Debug: Log received messages
+    console.log(`📩 Message received: "${message.content.substring(0, 50)}..."`);
+
     // Check if message contains a recipe URL
     const recipeUrl = detectRecipeUrl(message.content);
+
+    if (recipeUrl) {
+        console.log(`🔗 Recipe URL detected: ${recipeUrl}`);
+    }
 
     if (recipeUrl) {
         try {
@@ -201,6 +208,7 @@ client.once(Events.ClientReady, c => {
     console.log(`🍽️  Recipe Bot is online!`);
     console.log(`📊 Logged in as ${c.user.tag}`);
     console.log(`🏠 Serving ${c.guilds.cache.size} server(s)`);
+    console.log(`📨 Message listener active - post a recipe link to test!`);
     console.log('═'.repeat(50));
 });
 
