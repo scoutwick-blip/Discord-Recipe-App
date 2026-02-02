@@ -1,5 +1,6 @@
-import pkg from 'discord.js';
-const { SlashCommandBuilder, EmbedBuilder } = pkg;
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
 export const data = new SlashCommandBuilder()
     .setName('recipehelp')

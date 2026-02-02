@@ -1,5 +1,6 @@
-import pkg from 'discord.js';
-const { SlashCommandBuilder } = pkg;
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { SlashCommandBuilder } = require('discord.js');
 import {
     getRecipe,
     getGuildRecipes,

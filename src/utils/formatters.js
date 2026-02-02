@@ -1,5 +1,6 @@
-import pkg from 'discord.js';
-const { EmbedBuilder } = pkg;
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { EmbedBuilder } = require('discord.js');
 
 /**
  * Format a recipe as a Discord embed

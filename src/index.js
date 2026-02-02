@@ -1,5 +1,6 @@
-import pkg from 'discord.js';
-const { Client, Collection, Events, GatewayIntentBits } = pkg;
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 import { config } from 'dotenv';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';

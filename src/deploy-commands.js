@@ -1,5 +1,6 @@
-import pkg from 'discord.js';
-const { REST, Routes } = pkg;
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const { REST, Routes } = require('discord.js');
 import { config } from 'dotenv';
 import { fileURLToPath, pathToFileURL } from 'url';
 import { dirname, join } from 'path';
