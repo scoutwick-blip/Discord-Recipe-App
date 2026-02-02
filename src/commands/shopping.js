@@ -340,11 +340,16 @@ async function execute(interaction) {
                 .setMinValues(1)
                 .setMaxValues(Math.min(recentRecipes.length, 10))
                 .addOptions(
-                    recentRecipes.map(recipe => ({
-                        label: recipe.name.substring(0, 100),
-                        value: recipe.id,
-                        description: recipe.cuisine ? `${recipe.cuisine}`.substring(0, 100) : undefined
-                    }))
+                    recentRecipes.map(recipe => {
+                        const desc = recipe.cuisine && recipe.cuisine.length > 0
+                            ? String(recipe.cuisine).substring(0, 100)
+                            : undefined;
+                        return {
+                            label: recipe.name.substring(0, 100) || 'Untitled Recipe',
+                            value: recipe.id,
+                            ...(desc && { description: desc })
+                        };
+                    })
                 );
 
             const row = new ActionRowBuilder().addComponents(selectMenu);
