@@ -35,19 +35,27 @@ function detectRecipeUrl(content) {
     const urlRegex = /(https?:\/\/[^\s<]+)/gi;
     const urls = content.match(urlRegex);
 
-    if (!urls) return null;
+    if (!urls) {
+        console.log('🔍 No URLs found in message');
+        return null;
+    }
+
+    console.log(`🔍 URLs found: ${urls.join(', ')}`);
 
     for (const url of urls) {
         for (const pattern of RECIPE_URL_PATTERNS) {
             if (pattern.test(url)) {
+                console.log(`✓ Matched pattern: ${pattern}`);
                 return url;
             }
         }
         if (/recipe/i.test(url)) {
+            console.log('✓ URL contains "recipe"');
             return url;
         }
     }
 
+    console.log('❌ URL not recognized as a recipe site. Supported sites: allrecipes, foodnetwork, epicurious, bonappetit, seriouseats, food52, tasty, delish, simplyrecipes, budgetbytes, minimalistbaker, cookieandkate, skinnytaste, halfbakedharvest, pinchofyum, thepioneerwoman, bettycrocker, pillsbury, marthastewart, myrecipes, eatingwell, cooking.nytimes, recipes.com, yummly, spoonacular, hellofresh, blueapron - or any URL with "recipe" in it');
     return null;
 }
 
