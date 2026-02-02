@@ -201,8 +201,10 @@ function formatShoppingListEmbed(shoppingList) {
     for (const [category, items] of Object.entries(categories)) {
         const itemList = items
             .map(item => {
-                const checkbox = item.checked ? '☑️' : '⬜';
-                return `${checkbox} ${item.text}`;
+                if (item.checked) {
+                    return `~~${item.text}~~`;
+                }
+                return `• ${item.text}`;
             })
             .join('\n');
 
