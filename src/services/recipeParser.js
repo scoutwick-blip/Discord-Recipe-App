@@ -36,27 +36,31 @@ function detectRecipeUrl(content) {
     const urls = content.match(urlRegex);
 
     if (!urls) {
-        console.log('🔍 No URLs found in message');
         return null;
     }
 
-    console.log(`🔍 URLs found: ${urls.join(', ')}`);
-
+    // First, check for known recipe sites (high confidence)
     for (const url of urls) {
         for (const pattern of RECIPE_URL_PATTERNS) {
             if (pattern.test(url)) {
-                console.log(`✓ Matched pattern: ${pattern}`);
+                console.log(`🔗 Known recipe site detected: ${url}`);
                 return url;
             }
         }
-        if (/recipe/i.test(url)) {
-            console.log('✓ URL contains "recipe"');
+    }
+
+    // Second, check if URL contains recipe-related keywords
+    for (const url of urls) {
+        if (/recipe|cook|food|dish|meal|ingredient/i.test(url)) {
+            console.log(`🔗 Recipe-related URL detected: ${url}`);
             return url;
         }
     }
 
-    console.log('❌ URL not recognized as a recipe site. Supported sites: allrecipes, foodnetwork, epicurious, bonappetit, seriouseats, food52, tasty, delish, simplyrecipes, budgetbytes, minimalistbaker, cookieandkate, skinnytaste, halfbakedharvest, pinchofyum, thepioneerwoman, bettycrocker, pillsbury, marthastewart, myrecipes, eatingwell, cooking.nytimes, recipes.com, yummly, spoonacular, hellofresh, blueapron - or any URL with "recipe" in it');
-    return null;
+    // Finally, try any URL - the parser will determine if it's valid
+    const firstUrl = urls[0];
+    console.log(`🔗 Attempting to parse URL: ${firstUrl}`);
+    return firstUrl;
 }
 
 async function parseRecipe(url) {
