@@ -1,7 +1,5 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
 const { SlashCommandBuilder } = require('discord.js');
-import {
+const {
     createShoppingList,
     getShoppingList,
     getGuildShoppingLists,
@@ -11,11 +9,10 @@ import {
     clearChecked,
     deleteShoppingList,
     exportAsText
-} from '../services/shoppingList.js';
-import { getGuildRecipes } from '../services/recipeStorage.js';
-import { formatShoppingListEmbed } from '../utils/formatters.js';
+} = require('../services/shoppingList');
+const { formatShoppingListEmbed } = require('../utils/formatters');
 
-export const data = new SlashCommandBuilder()
+const data = new SlashCommandBuilder()
     .setName('shopping')
     .setDescription('Manage shopping lists')
     .addSubcommand(subcommand =>
@@ -139,7 +136,7 @@ export const data = new SlashCommandBuilder()
             )
     );
 
-export async function execute(interaction) {
+async function execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
 
     switch (subcommand) {
@@ -211,7 +208,7 @@ export async function execute(interaction) {
 
         case 'check': {
             const id = interaction.options.getString('id');
-            const itemNum = interaction.options.getInteger('item') - 1; // Convert to 0-indexed
+            const itemNum = interaction.options.getInteger('item') - 1;
 
             const list = toggleItem(id, itemNum);
 
@@ -286,7 +283,7 @@ export async function execute(interaction) {
                 });
             }
 
-            const list = clearChecked(id);
+            clearChecked(id);
 
             return interaction.reply({
                 content: `🧹 Cleared ${checkedCount} checked item(s) from the shopping list.`
@@ -323,7 +320,7 @@ export async function execute(interaction) {
     }
 }
 
-export async function autocomplete(interaction) {
+async function autocomplete(interaction) {
     const focusedValue = interaction.options.getFocused().toLowerCase();
     const lists = getGuildShoppingLists(interaction.guildId);
 
@@ -341,3 +338,5 @@ export async function autocomplete(interaction) {
         }))
     );
 }
+
+module.exports = { data, execute, autocomplete };

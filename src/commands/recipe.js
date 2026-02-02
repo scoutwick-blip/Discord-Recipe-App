@@ -1,7 +1,5 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
 const { SlashCommandBuilder } = require('discord.js');
-import {
+const {
     getRecipe,
     getGuildRecipes,
     searchRecipes,
@@ -10,15 +8,15 @@ import {
     addRecipeNote,
     rateRecipe,
     markAsCooked
-} from '../services/recipeStorage.js';
-import {
+} = require('../services/recipeStorage');
+const {
     formatRecipeEmbed,
     formatIngredientsEmbed,
     formatInstructionsEmbeds,
     formatRecipeListEmbed
-} from '../utils/formatters.js';
+} = require('../utils/formatters');
 
-export const data = new SlashCommandBuilder()
+const data = new SlashCommandBuilder()
     .setName('recipe')
     .setDescription('Manage your saved recipes')
     .addSubcommand(subcommand =>
@@ -154,7 +152,7 @@ export const data = new SlashCommandBuilder()
             )
     );
 
-export async function execute(interaction) {
+async function execute(interaction) {
     const subcommand = interaction.options.getSubcommand();
 
     switch (subcommand) {
@@ -191,7 +189,7 @@ export async function execute(interaction) {
             }
 
             const embeds = formatInstructionsEmbeds(recipe);
-            return interaction.reply({ embeds: embeds.slice(0, 10) }); // Discord limit
+            return interaction.reply({ embeds: embeds.slice(0, 10) });
         }
 
         case 'list': {
@@ -289,7 +287,7 @@ export async function execute(interaction) {
     }
 }
 
-export async function autocomplete(interaction) {
+async function autocomplete(interaction) {
     const focusedValue = interaction.options.getFocused().toLowerCase();
     const recipes = getGuildRecipes(interaction.guildId);
 
@@ -307,3 +305,5 @@ export async function autocomplete(interaction) {
         }))
     );
 }
+
+module.exports = { data, execute, autocomplete };

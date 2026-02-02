@@ -1,12 +1,10 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 
-export const data = new SlashCommandBuilder()
+const data = new SlashCommandBuilder()
     .setName('recipehelp')
     .setDescription('Show help for the Recipe Bot');
 
-export async function execute(interaction) {
+async function execute(interaction) {
     const embed = new EmbedBuilder()
         .setColor(0xE67E22)
         .setTitle('🍽️ Recipe Bot Help')
@@ -64,3 +62,5 @@ export async function execute(interaction) {
 
     return interaction.reply({ embeds: [embed] });
 }
+
+module.exports = { data, execute };

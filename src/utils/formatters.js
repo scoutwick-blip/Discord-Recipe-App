@@ -1,30 +1,22 @@
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
 const { EmbedBuilder } = require('discord.js');
 
 /**
  * Format a recipe as a Discord embed
- * @param {Object} recipe - The recipe object
- * @param {Object} options - Display options
- * @returns {EmbedBuilder} - Discord embed
  */
-export function formatRecipeEmbed(recipe, options = {}) {
+function formatRecipeEmbed(recipe, options = {}) {
     const embed = new EmbedBuilder()
         .setColor(0xE67E22)
         .setTitle(truncate(recipe.name, 256))
         .setURL(recipe.sourceUrl || null);
 
-    // Add description
     if (recipe.description) {
         embed.setDescription(truncate(recipe.description, 300));
     }
 
-    // Add image
     if (recipe.image && !options.compact) {
         embed.setThumbnail(recipe.image);
     }
 
-    // Add time info
     const timeInfo = [];
     if (recipe.prepTime) timeInfo.push(`Prep: ${recipe.prepTime}`);
     if (recipe.cookTime) timeInfo.push(`Cook: ${recipe.cookTime}`);
@@ -34,12 +26,10 @@ export function formatRecipeEmbed(recipe, options = {}) {
         embed.addFields({ name: '⏱️ Time', value: timeInfo.join(' | '), inline: true });
     }
 
-    // Add servings
     if (recipe.servings) {
         embed.addFields({ name: '🍽️ Servings', value: String(recipe.servings), inline: true });
     }
 
-    // Add cuisine/category
     const meta = [];
     if (recipe.cuisine) meta.push(recipe.cuisine);
     if (recipe.category) meta.push(recipe.category);
@@ -48,13 +38,11 @@ export function formatRecipeEmbed(recipe, options = {}) {
         embed.addFields({ name: '🏷️ Category', value: meta.join(', '), inline: true });
     }
 
-    // Add rating if exists
     if (recipe.rating) {
         const stars = '⭐'.repeat(recipe.rating) + '☆'.repeat(5 - recipe.rating);
         embed.addFields({ name: 'Rating', value: stars, inline: true });
     }
 
-    // Add ingredients (summarized for main view)
     if (recipe.ingredients && recipe.ingredients.length > 0 && !options.compact) {
         const ingredientList = recipe.ingredients
             .slice(0, 8)
@@ -72,7 +60,6 @@ export function formatRecipeEmbed(recipe, options = {}) {
         });
     }
 
-    // Add tags
     if (recipe.tags && recipe.tags.length > 0) {
         embed.addFields({
             name: '🏷️ Tags',
@@ -81,13 +68,11 @@ export function formatRecipeEmbed(recipe, options = {}) {
         });
     }
 
-    // Add footer with ID and author
     const footerParts = [`ID: ${recipe.id}`];
     if (recipe.author) footerParts.push(`by ${recipe.author}`);
 
     embed.setFooter({ text: footerParts.join(' | ') });
 
-    // Add timestamp
     if (recipe.savedAt) {
         embed.setTimestamp(new Date(recipe.savedAt));
     }
@@ -97,10 +82,8 @@ export function formatRecipeEmbed(recipe, options = {}) {
 
 /**
  * Format recipe ingredients as a detailed embed
- * @param {Object} recipe - The recipe object
- * @returns {EmbedBuilder} - Discord embed
  */
-export function formatIngredientsEmbed(recipe) {
+function formatIngredientsEmbed(recipe) {
     const embed = new EmbedBuilder()
         .setColor(0x3498DB)
         .setTitle(`📝 ${recipe.name} - Ingredients`)
@@ -110,12 +93,10 @@ export function formatIngredientsEmbed(recipe) {
         embed.setDescription(`*Makes ${recipe.servings} servings*`);
     }
 
-    // Split ingredients into chunks to fit Discord limits
     const ingredientList = recipe.ingredients
         .map((ing, i) => `${i + 1}. ${ing}`)
         .join('\n');
 
-    // Split into multiple fields if needed
     const chunks = splitIntoChunks(ingredientList, 1024);
 
     chunks.forEach((chunk, index) => {
@@ -132,14 +113,11 @@ export function formatIngredientsEmbed(recipe) {
 }
 
 /**
- * Format recipe instructions as a detailed embed
- * @param {Object} recipe - The recipe object
- * @returns {Array<EmbedBuilder>} - Array of Discord embeds
+ * Format recipe instructions as detailed embeds
  */
-export function formatInstructionsEmbeds(recipe) {
+function formatInstructionsEmbeds(recipe) {
     const embeds = [];
 
-    // Create main embed
     const mainEmbed = new EmbedBuilder()
         .setColor(0x2ECC71)
         .setTitle(`👨‍🍳 ${recipe.name} - Instructions`)
@@ -149,7 +127,6 @@ export function formatInstructionsEmbeds(recipe) {
         mainEmbed.setThumbnail(recipe.image);
     }
 
-    // Add time info
     const timeInfo = [];
     if (recipe.prepTime) timeInfo.push(`Prep: ${recipe.prepTime}`);
     if (recipe.cookTime) timeInfo.push(`Cook: ${recipe.cookTime}`);
@@ -158,16 +135,13 @@ export function formatInstructionsEmbeds(recipe) {
         mainEmbed.setDescription(`*${timeInfo.join(' | ')}*`);
     }
 
-    // Format instructions
     const instructionList = recipe.instructions
         .map((inst, i) => `**Step ${i + 1}:** ${inst}`)
         .join('\n\n');
 
-    // Split into chunks
     const chunks = splitIntoChunks(instructionList, 1024);
 
     if (chunks.length <= 3) {
-        // Fits in one embed
         chunks.forEach((chunk, index) => {
             mainEmbed.addFields({
                 name: index === 0 ? 'Steps' : '\u200B',
@@ -178,7 +152,6 @@ export function formatInstructionsEmbeds(recipe) {
         mainEmbed.setFooter({ text: `Recipe ID: ${recipe.id}` });
         embeds.push(mainEmbed);
     } else {
-        // Need multiple embeds
         mainEmbed.addFields({
             name: 'Steps',
             value: chunks[0],
@@ -186,7 +159,6 @@ export function formatInstructionsEmbeds(recipe) {
         });
         embeds.push(mainEmbed);
 
-        // Add continuation embeds
         for (let i = 1; i < chunks.length; i++) {
             const contEmbed = new EmbedBuilder()
                 .setColor(0x2ECC71)
@@ -209,16 +181,13 @@ export function formatInstructionsEmbeds(recipe) {
 
 /**
  * Format a shopping list as an embed
- * @param {Object} shoppingList - The shopping list object
- * @returns {EmbedBuilder} - Discord embed
  */
-export function formatShoppingListEmbed(shoppingList) {
+function formatShoppingListEmbed(shoppingList) {
     const embed = new EmbedBuilder()
         .setColor(0x9B59B6)
         .setTitle('🛒 Shopping List')
         .setDescription(`*${shoppingList.recipes.length} recipe(s) | ${shoppingList.items.length} items*`);
 
-    // Group items by category
     const categories = {};
 
     for (const item of shoppingList.items) {
@@ -229,7 +198,6 @@ export function formatShoppingListEmbed(shoppingList) {
         categories[category].push(item);
     }
 
-    // Add each category
     for (const [category, items] of Object.entries(categories)) {
         const itemList = items
             .map(item => {
@@ -245,7 +213,6 @@ export function formatShoppingListEmbed(shoppingList) {
         });
     }
 
-    // Add recipe names
     if (shoppingList.recipeNames && shoppingList.recipeNames.length > 0) {
         embed.addFields({
             name: '📋 Recipes',
@@ -262,11 +229,8 @@ export function formatShoppingListEmbed(shoppingList) {
 
 /**
  * Format recipe list as an embed
- * @param {Array} recipes - Array of recipes
- * @param {string} title - Embed title
- * @returns {EmbedBuilder} - Discord embed
  */
-export function formatRecipeListEmbed(recipes, title = 'Recipes') {
+function formatRecipeListEmbed(recipes, title = 'Recipes') {
     const embed = new EmbedBuilder()
         .setColor(0xE67E22)
         .setTitle(`📚 ${title}`)
@@ -301,10 +265,8 @@ export function formatRecipeListEmbed(recipes, title = 'Recipes') {
 
 /**
  * Format statistics as an embed
- * @param {Object} stats - Statistics object
- * @returns {EmbedBuilder} - Discord embed
  */
-export function formatStatsEmbed(stats) {
+function formatStatsEmbed(stats) {
     const embed = new EmbedBuilder()
         .setColor(0x3498DB)
         .setTitle('📊 Recipe Collection Stats');
@@ -342,9 +304,6 @@ export function formatStatsEmbed(stats) {
     return embed;
 }
 
-/**
- * Get emoji for ingredient category
- */
 function getCategoryEmoji(category) {
     const emojis = {
         'Produce': '🥬',
@@ -363,18 +322,12 @@ function getCategoryEmoji(category) {
     return emojis[category] || '📦';
 }
 
-/**
- * Truncate text to a maximum length
- */
 function truncate(text, maxLength) {
     if (!text) return '';
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength - 3) + '...';
 }
 
-/**
- * Split text into chunks of maximum size
- */
 function splitIntoChunks(text, maxSize) {
     const chunks = [];
     const lines = text.split('\n');
@@ -393,3 +346,12 @@ function splitIntoChunks(text, maxSize) {
 
     return chunks;
 }
+
+module.exports = {
+    formatRecipeEmbed,
+    formatIngredientsEmbed,
+    formatInstructionsEmbeds,
+    formatShoppingListEmbed,
+    formatRecipeListEmbed,
+    formatStatsEmbed
+};

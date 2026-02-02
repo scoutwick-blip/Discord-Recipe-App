@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "A Discord bot that organizes recipes from links and creates shopping lists",
   "main": "src/index.js",
-  "type": "module",
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
@@ -20,8 +19,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
     "discord.js": "^14.14.1",
-    "dotenv": "^16.3.1",
-    "node-fetch": "^3.3.2"
+    "dotenv": "^16.3.1"
   },
   "engines": {
     "node": ">=18.0.0"
