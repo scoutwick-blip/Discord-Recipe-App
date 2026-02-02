@@ -80,6 +80,7 @@ client.on(Events.InteractionCreate, async interaction => {
 const { detectRecipeUrl, parseRecipe } = require('./services/recipeParser');
 const { saveRecipe, getRecipe, markAsCooked } = require('./services/recipeStorage');
 const { createShoppingList } = require('./services/shoppingList');
+const { isAllowedChannel } = require('./services/guildConfig');
 const {
     formatRecipeEmbed,
     formatIngredientsEmbed,
@@ -93,18 +94,16 @@ client.on(Events.MessageCreate, async message => {
     // Ignore bot messages
     if (message.author.bot) return;
 
-    // Debug: Log received messages
-    console.log(`📩 Message received: "${message.content.substring(0, 50)}..."`);
+    // Check if this channel is configured for recipe parsing
+    if (!isAllowedChannel(message.guildId, message.channelId)) return;
 
     // Check if message contains a recipe URL
     const recipeUrl = detectRecipeUrl(message.content);
+    if (!recipeUrl) return;
 
-    if (recipeUrl) {
-        console.log(`🔗 Recipe URL detected: ${recipeUrl}`);
-    }
+    console.log(`🔗 Recipe URL detected: ${recipeUrl}`);
 
-    if (recipeUrl) {
-        try {
+    try {
             // React to show we're processing
             try { await message.react('🍳'); } catch (e) { /* ignore */ }
 
@@ -137,7 +136,6 @@ client.on(Events.MessageCreate, async message => {
                 await message.react('❌');
             } catch (e) { /* ignore */ }
             await message.reply('Sorry, I couldn\'t parse that recipe. The website might not be supported or the link may be invalid.');
-        }
     }
 });
 
